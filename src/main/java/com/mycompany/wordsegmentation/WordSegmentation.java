@@ -14,7 +14,8 @@ public class WordSegmentation {
 
     public static void main(String[] args) throws IOException {
         luceneTokenizer lt = new luceneTokenizer();
-        lt.Tokenizing("getname");
+        lt.Tokenizing("getaccount");
         System.out.println(lt.getTokens());
+        System.out.println(lt.segment("getaccount"));
     }
 }
