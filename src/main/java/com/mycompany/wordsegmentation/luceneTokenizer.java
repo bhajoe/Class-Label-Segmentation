@@ -70,6 +70,77 @@ public class luceneTokenizer {
         }
     }
     
+    public void Tokenizings(String Lbl) throws IOException {
+    // 1. BAGIAN IF: Tetap dipertahankan untuk CamelCase
+    if (Lbl.matches(".*[A-Z].*")) {
+        String[] lbls = Lbl.split("(?=\\p{Upper})");
+        for (String wrd : lbls) {
+            // Opsional: di-lowercase agar seragam dengan output di bagian else
+            this.tokens.add(wrd.toLowerCase()); 
+        }
+    } 
+    // 2. BAGIAN ELSE: Diganti dengan Hybrid (Longest Match + Statistik)
+    else {
+        String text = Lbl.toLowerCase();
+        int n = text.length();
+        
+        // Setup Array untuk Dynamic Programming
+        double[] minCosts = new double[n + 1];
+        int[] splitPositions = new int[n + 1];
+        Arrays.fill(minCosts, Double.MAX_VALUE);
+        minCosts[0] = 0.0;
+        
+        // Parameter penelitian jurnalmu (bisa diubah-ubah nilainya nanti)
+        double alpha = 2.0;        // Bobot Longest Match (semakin besar, semakin suka kata panjang)
+        double unkPenalty = 999.0; // Hukuman jika potongan kata tidak ada di kamus
+        
+        // Perulangan untuk mengecek semua kombinasi potongan kata
+        for (int i = 1; i <= n; i++) {
+            for (int j = 0; j < i; j++) {
+                String word = text.substring(j, i);
+                double cost;
+                
+                // --- DI SINI KITA TETAP MENGGUNAKAN KAMUSMU ---
+                if (this.Dict.getDict().contains(word)) {
+                    
+                    // Karena ini metode hibrida dengan statistik, kita butuh nilai probabilitasnya.
+                    // Asumsinya, kamu menambahkan method getProbability() di class Dict milikmu.
+                    // Nilainya berkisar antara 0.0001 hingga 1.0
+                    double prob = this.Dict.getProbability(word); 
+                    
+                    // Rumus Hibrida: Cost = -log(P) dikurangi bonus panjang kata (Longest Match)
+                    cost = -Math.log(prob) - (alpha * word.length());
+                    
+                } else {
+                    // Jika kata TIDAK ADA di kamus, berikan penalti besar
+                    cost = unkPenalty * word.length();
+                }
+                
+                // Jika jalur pemotongan ini menghasilkan Cost lebih kecil, simpan posisinya!
+                if (minCosts[j] != Double.MAX_VALUE && minCosts[j] + cost < minCosts[i]) {
+                    minCosts[i] = minCosts[j] + cost;
+                    splitPositions[i] = j; // Ingat kita memotong di indeks ke-j
+                }
+            }
+        }
+        
+        // 3. REKONSTRUKSI HASIL: Mengambil potongan kata dari belakang ke depan
+        List<String> result = new ArrayList<>();
+        int currentIndex = n;
+        while (currentIndex > 0) {
+            int prevIndex = splitPositions[currentIndex];
+            result.add(text.substring(prevIndex, currentIndex));
+            currentIndex = prevIndex;
+        }
+        
+        // Karena diambil dari belakang, urutannya harus dibalik, lalu dimasukkan ke this.tokens
+        Collections.reverse(result);
+        for (String token : result) {
+            this.tokens.add(token);
+        }
+    }
+}
+    
     public void DPSplitting(Map<String, Long> freqDict)
     {
         this.freqDict = new HashMap<>(freqDict);
