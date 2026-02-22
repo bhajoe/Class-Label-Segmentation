@@ -13,12 +13,13 @@ import java.io.IOException;
 public class WordSegmentation {
 
     public static void main(String[] args) throws IOException {
-        //luceneTokenizer lt = new luceneTokenizer();
-        //lt.Tokenizing("getaccount");
-        //System.out.println(lt.getTokens());
+        luceneTokenizer lt = new luceneTokenizer();
         
-        HybridTokenizer ht = new HybridTokenizer();
-        ht.tokenize("usesocket");
-        System.out.println(ht.getToken());
+        lt.Tokenizings("getaccount");
+        System.out.println(lt.getTokens());
+        
+        //HybridTokenizer ht = new HybridTokenizer();
+        //ht.tokenize("usesocket");
+        //System.out.println(ht.getToken());
     }
 }
